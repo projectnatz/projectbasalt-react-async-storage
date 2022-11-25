@@ -1,5 +1,5 @@
 {
-  "name": "@projectbasalt/react-async-storage",
+  "name": "@projectbasalt/react-async-store",
   "version": "1.0.0",
   "description": "A React global store with automatic async fetching.",
   "main": "index.js",
@@ -11,30 +11,31 @@
     "test:ts": "npx tsc --noEmit",
     "build": "npx tsc",
     "clean": "rm -rf dist",
-    "prepare-pack": "npm run build && cp package.json ./dist && cp .npmignore ./dist && cp ./src/global.d.ts ./dist",
+    "prepare-pack": "npm run build && cp package.json ./dist && cp .npmignore ./dist",
     "bundle": "npm run prepare-pack && npm pack ./dist && npm run clean",
     "release": "npm run prepare-pack && npm publish ./dist && npm run clean"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/projectnatz/projectbasalt-react-async-storage.git"
+    "url": "git+https://github.com/projectnatz/projectbasalt-react-async-store.git"
   },
   "keywords": [
-    "firestore",
-    "firebase",
-    "interface",
+    "store",
+    "async",
+    "external",
     "typescript",
     "typed",
     "type",
-    "client",
-    "server"
+    "global",
+    "fetch",
+    "react"
   ],
   "author": "Francesco Natati",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/projectnatz/projectbasalt-firestore/issues"
+    "url": "https://github.com/projectnatz/projectbasalt-react-async-store/issues"
   },
-  "homepage": "https://github.com/projectnatz/projectbasalt-firestore#readme",
+  "homepage": "https://github.com/projectnatz/projectbasalt-react-async-store#readme",
   "dependencies": {
     "@projectbasalt/react": "^1.0.0"
   },
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
-    "react": "^18.0.0"
+    "react": "^18.0.0",
+    "typescript": "^4.9.3"
   }
 }

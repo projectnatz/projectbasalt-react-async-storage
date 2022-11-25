@@ -1,3 +1,4 @@
+import { useEvent } from "@projectbasalt/react"
 import React from "react"
 
 const FORCE_REFRESH = Symbol("pn.basalt.store.force_refresh")
@@ -228,12 +229,12 @@ export function createStore()
 	}
 
 	return {
-		useCurrent,
-		useCurrentDeps,
-		useCurrentsDeps,
+		useStore: useCurrent,
+		useDeps: useCurrentDeps,
+		useMultipleDeps: useCurrentsDeps,
 		useRefresh,
 		useSet,
-		useStore,
+		useAsync: useStore,
 		dumpAll: () => {
 			const array1 = []
 			const array2 = []
