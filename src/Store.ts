@@ -79,13 +79,14 @@ const EMPTY_ARRAY: never[] = []
 
 export function createStore()
 {
-	const cache = new Map<string | Store.Data<unknown, unknown, unknown[]>, { expiresAt: Store.Lifespan, value: unknown, nextValue?: Promise<unknown> }>()
+	const cache = new Map<string | Store.Data<unknown, unknown, unknown[]>, { expiresAt: Store.Lifespan, value: { data: unknown, loading: boolean }, nextValue?: Promise<unknown> }>()
 	const currents = new Map<Store.Data<unknown, unknown, unknown[]>, { deps: unknown[], key: string }>()
+	const defaults = new Map<Store.Data<unknown, unknown, unknown[]>, { data: unknown, loading: boolean }>()
 	const currentsListeners: typeof listeners = new Set()
 	const listeners = new Set<(() => void)>()
 
-	const notifyAll = () => (console.debug("Notifying all listeners..."), listeners.forEach(listener => listener()))
-	const notifyAllCurrents = () => (console.debug("Notifying all currents listeners..."), currentsListeners.forEach(listener => listener()))
+	const notifyAll = () => listeners.forEach(listener => listener())
+	const notifyAllCurrents = () => currentsListeners.forEach(listener => listener())
 
 	const subscribe = (listener: () => void) => (listeners.add(listener), (() => { listeners.delete(listener) }))
 	const subscribeToCurrent = (listener: () => void) => (currentsListeners.add(listener), (() => { currentsListeners.delete(listener) }))
@@ -96,6 +97,8 @@ export function createStore()
 		Deps extends any[] = [],
 	>(data: Store.Data<Value, DefaultValue, Deps>, value?: Store.StoredValue<Value | DefaultValue> | typeof FORCE_REFRESH, ...args: Store.Args<Deps>) =>
 	{
+		if (!defaults.has(data)) defaults.set(data, { data: data.defaultValue(), loading: false })
+		
 		const isQuery = "check" in data
 			const deps = args as Deps
 
@@ -112,7 +115,7 @@ export function createStore()
 			if (value !== undefined || chunk === undefined || isExpired(chunk.expiresAt)) {
 				const expiresAt = expiration(data.lifespan)
 
-				const previousValue = chunk !== undefined ? chunk.value : data.defaultValue()
+				const previousValue = chunk !== undefined ? chunk.value : defaults.get(data)!
 				const nextValue
 					= value !== undefined && value !== FORCE_REFRESH
 						? value
@@ -122,24 +125,18 @@ export function createStore()
 
 				const nextChunk = nextValue instanceof Promise
 					? { expiresAt, nextValue, value: previousValue }
-					: { expiresAt, value: nextValue }
+					: { expiresAt, value: { data: nextValue, loading: false } }
 
 				cache.set(key, nextChunk)
 				notifyAll()
 					
 				if (nextChunk.nextValue)
-					nextChunk.nextValue.then(value => (cache.set(key, { expiresAt, value }), console.debug(`Updated value at "${key}".`), notifyAll()))
+					nextChunk.nextValue.then(data => (cache.set(key, { expiresAt, value: { data, loading: false } }), notifyAll()))
 				
-				return {
-					data: nextChunk.value as Value | DefaultValue,
-					loading: nextChunk.nextValue !== undefined,
-				}
+				return nextChunk.value as { data: Value | DefaultValue, loading: boolean }
 			}
 
-			return {
-				data: chunk.value as Value | DefaultValue,
-				loading: chunk.nextValue !== undefined,
-			}
+			return chunk.value as { data: Value | DefaultValue, loading: boolean }
 	}
 
 	const useCurrent = <
